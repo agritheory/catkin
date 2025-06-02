@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Login</title>
+	<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+	<div class="login-container">
+		<div class="login-card">
+			<div class="logo-container">
+				<img src="{{ url_for('static', filename='atlogo_rust.svg') }}" alt="AgriTheory" class="logo">
+			</div>
+			{% if error %}
+			<div class="error">
+				{{ error }}
+			</div>
+			{% endif %}
+
+			{% if oauth_providers %}
+			<div class="oauth-section">
+				<h3>Sign in with</h3>
+				<div class="oauth-buttons">
+					{% for provider in oauth_providers %}
+					<a href="/auth/oauth/{{ provider.name }}?redirect={{ redirect_url }}"
+						class="oauth-btn oauth-btn-{{ provider.name }}">
+						{% if provider.icon %}
+						<img src="{{ provider.icon }}" class="oauth-icon">
+						{% endif %}
+						{{ provider.provider_name }}
+					</a>
+					{% endfor %}
+				</div>
+
+				<hr>
+			</div>
+			{% endif %}
+
+			<form method="POST" action="/auth/login">
+				<input type="hidden" name="redirect" value="{{ redirect_url }}">
+
+				<div class="form-group">
+					<label for="username">Email</label>
+					<input type="email" id="username" name="username" required placeholder="admin@agritheory.com">
+				</div>
+
+				<div class="form-group">
+					<label for="password">Password</label>
+					<input type="password" id="password" name="password" required placeholder="password123">
+				</div>
+
+				<button type="submit" class="btn-primary">
+					Sign In
+				</button>
+			</form>
+
+		</div>
+	</div>
+</body>
+
+</html>
