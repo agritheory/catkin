@@ -1,19 +1,26 @@
+# mypy: disable-error-code="misc"
+
 import logging
 import secrets
 from datetime import datetime, timedelta
 from pathlib import Path
+from typing import Any
 
 import jwt
 import uvicorn
 from cryptography.fernet import Fernet
 from environs import Env
-from quart import (Quart, Response, make_response, redirect, render_template,
-                   request, url_for)
+from quart import Quart, make_response, redirect, render_template, request, url_for
+from quart.typing import ResponseTypes
 
 from .database import Database, initialize_db
-from .oauth_provider import (build_authorize_url, exchange_code_for_token,
-                             get_enabled_providers, get_provider_by_name,
-                             get_user_info)
+from .oauth_provider import (
+	build_authorize_url,
+	exchange_code_for_token,
+	get_enabled_providers,
+	get_provider_by_name,
+	get_user_info,
+)
 
 _logger = logging.getLogger(__name__)
 
@@ -40,7 +47,7 @@ if FERNET_KEY:
 	fernet = Fernet(FERNET_KEY.encode())
 
 
-async def get_user_by_username(username: str):
+async def get_user_by_username(username: str) -> Any:
 	"""Get user from database by username - matching your pattern"""
 	query = """
 		SELECT id, username, password_hash, disabled, creation, modified, owner, modified_by
@@ -72,7 +79,7 @@ def create_jwt_token(user_id: int, username: str) -> str:
 	return jwt.encode(payload, JWT_SECRET, algorithm="HS256")
 
 
-def verify_jwt_token(token: str) -> dict:
+def verify_jwt_token(token: str) -> dict | None:
 	"""Verify and decode JWT token"""
 	try:
 		return jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
@@ -114,12 +121,12 @@ async def login_page() -> str:
 
 
 @app.route("/auth/login", methods=["POST"])
-async def handle_login() -> Response:
+async def handle_login() -> ResponseTypes:
 	"""Handle login form submission"""
 	form = await request.form
-	username = form.get("username")
-	password = form.get("password")
-	redirect_url = form.get("redirect", DEFAULT_REDIRECT)
+	username: str = form.get("username")  # type: ignore
+	password: str = form.get("password")  # type: ignore
+	redirect_url: str = form.get("redirect", DEFAULT_REDIRECT)
 
 	try:
 		user = await get_user_by_username(username)
@@ -146,7 +153,7 @@ async def handle_login() -> Response:
 
 
 @app.route("/auth/verify", methods=["GET"])
-async def verify() -> tuple(str, int):
+async def verify() -> ResponseTypes:
 	"""Caddy forward_auth endpoint - checks if user is authenticated"""
 	token = request.cookies.get("auth_token")
 
@@ -159,11 +166,11 @@ async def verify() -> tuple(str, int):
 			response.headers["X-Auth-Method"] = "jwt"
 			return response
 
-	return "", 401
+	return await make_response("", 401)
 
 
 @app.route("/auth/oauth/<provider_name>")
-async def oauth_login(provider_name: str) -> Response:
+async def oauth_login(provider_name: str) -> ResponseTypes:
 	try:
 		provider = await get_provider_by_name(db, provider_name)
 
@@ -193,7 +200,7 @@ async def oauth_login(provider_name: str) -> Response:
 
 
 @app.route("/auth/oauth/<provider_name>/callback")
-async def oauth_callback(provider_name: str) -> Response:
+async def oauth_callback(provider_name: str) -> ResponseTypes:
 	try:
 		provider = await get_provider_by_name(db, provider_name)
 		if not provider:
@@ -217,6 +224,10 @@ async def oauth_callback(provider_name: str) -> Response:
 			original_redirect = state_data.get("redirect", DEFAULT_REDIRECT)
 		except jwt.InvalidTokenError:
 			return redirect(url_for("login_page", error="Invalid OAuth state token"))
+
+		if not fernet:
+			_logger.error("Fernet key is not configured, cannot decrypt state")
+			return redirect(url_for("login_page", error="OAuth configuration error"))
 
 		redirect_uri = request.url_root.rstrip("/") + f"/auth/oauth/{provider_name}/callback"
 		token_data = await exchange_code_for_token(provider, fernet, code, redirect_uri)
@@ -256,12 +267,12 @@ async def oauth_callback(provider_name: str) -> Response:
 
 
 def extract_email_from_user_info(provider_name: str, user_info: dict) -> str:
-	return user_info.get("email") or user_info.get("mail") or user_info.get("emailAddress")
+	return user_info.get("email") or user_info.get("mail") or user_info.get("emailAddress")  # type: ignore
 
 
 async def get_or_create_oauth_user(
 	email: str, user_info: dict, provider_name: str
-) -> dict:
+) -> dict | None:
 	if not email:
 		return None
 

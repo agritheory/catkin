@@ -1,4 +1,5 @@
 import logging
+from typing import Any
 
 import asyncpg
 from cryptography.fernet import Fernet
@@ -15,7 +16,7 @@ class Database:
 		)
 		self.pool = None
 
-	async def connect(self):
+	async def connect(self) -> asyncpg.Pool:
 		self.pool = await asyncpg.create_pool(self.database_url)
 		return self.pool
 
@@ -23,15 +24,24 @@ class Database:
 		if self.pool:
 			await self.pool.close()
 
-	async def execute(self, query: str, *args):
+	async def execute(self, query: str, *args: Any) -> Any:
+		if self.pool is None:
+			raise ValueError("Database connection pool is not initialized")
+
 		async with self.pool.acquire() as conn:
 			return await conn.execute(query, *args)
 
-	async def fetch_one(self, query: str, *args):
+	async def fetch_one(self, query: str, *args: Any) -> Any:
+		if self.pool is None:
+			raise ValueError("Database connection pool is not initialized")
+
 		async with self.pool.acquire() as conn:
 			return await conn.fetchrow(query, *args)
 
-	async def fetch_all(self, query: str, *args):
+	async def fetch_all(self, query: str, *args: Any) -> Any:
+		if self.pool is None:
+			raise ValueError("Database connection pool is not initialized")
+
 		async with self.pool.acquire() as conn:
 			return await conn.fetch(query, *args)
 

@@ -14,6 +14,24 @@ _logger = logging.getLogger(__name__)
 
 
 class OAuthProvider:
+	id: int | None
+	name: str | None
+	provider_name: str | None
+	client_id: str | None
+	client_secret: str | None  # Will be encrypted
+	base_url: str | None
+	icon: str | None
+	enable_social_login: bool
+	custom_base_url: str | None
+	authorize_url: str | None
+	access_token_url: str | None
+	api_endpoint: str | None
+	scopes: str
+	creation: str | None
+	modified: str | None
+	owner: str | None
+	modified_by: str | None
+
 	def __init__(self, data: dict):
 		self.id = data.get("id")
 		self.name = data.get("name")
@@ -215,14 +233,14 @@ async def get_provider_by_name(db: Database, name: str) -> OAuthProvider | None:
 
 
 def build_authorize_url(
-	provider: OAuthProvider, redirect_uri: str, state: str = None
+	provider: OAuthProvider, redirect_uri: str, state: str | None = None
 ) -> str:
 	base_url = provider.custom_base_url or provider.base_url
 	if not base_url:
 		raise ValueError(f"No base URL configured for provider {provider.name}")
 
 	# Build full authorize URL
-	if provider.authorize_url.startswith("http"):
+	if provider.authorize_url and provider.authorize_url.startswith("http"):
 		auth_url = provider.authorize_url
 	else:
 		auth_url = f"{base_url.rstrip('/')}{provider.authorize_url}"
@@ -256,8 +274,8 @@ async def exchange_code_for_token(
 		_logger.error(f"Failed to decrypt client secret for {provider.name}: {e}")
 		return None
 
-	base_url = provider.custom_base_url or provider.base_url
-	if provider.access_token_url.startswith("http"):
+	base_url = provider.custom_base_url or provider.base_url or ""
+	if provider.access_token_url and provider.access_token_url.startswith("http"):
 		token_url = provider.access_token_url
 	else:
 		token_url = f"{base_url.rstrip('/')}{provider.access_token_url}"
@@ -286,11 +304,11 @@ async def exchange_code_for_token(
 
 
 async def get_user_info(provider: OAuthProvider, access_token: str) -> dict | None:
-	base_url = provider.custom_base_url or provider.base_url
+	base_url = provider.custom_base_url or provider.base_url or ""
 	if not base_url.startswith(("http://", "https://")):
 		base_url = f"http://{base_url}"
 		base_url = base_url.rstrip("/")
-	api_endpoint = provider.api_endpoint.lstrip("/")
+	api_endpoint = provider.api_endpoint and provider.api_endpoint.lstrip("/")
 	if not api_endpoint:
 		_logger.error(f"No API endpoint configured for provider {provider.name}")
 		return None
