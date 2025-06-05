@@ -163,6 +163,40 @@ poetry run start    # Production server
 - Set secure cookie flags in production
 - Use strong passwords for the admin account
 
+## Caddy Integration
+
+This project includes a **complete and fully operational Caddy JWT Authentication System** that demonstrates how to secure normally unsecured services using the catkin authentication service. The Caddy integration provides:
+
+- **Single Sign-On**: One login protects multiple services
+- **JWT Forward Auth**: Automatic authentication for all proxied services
+- **User Context**: Backend services receive user information via headers
+- **Production Ready**: HTTPS, security headers, and auto-certificate management
+- **Zero Code Changes**: Protect existing applications without modification
+
+### Quick Access
+
+```bash
+# Access the system (already running and configured)
+open http://localhost:8000/           # Redirects to login
+open http://localhost:8000/app1/      # Protected application 1
+open http://localhost:8000/app2/      # Protected application 2
+open http://localhost:8000/health     # Health check (no auth)
+```
+
+### Caddy System Structure
+
+```
+caddy/                               ✅ FULLY ORGANIZED
+├── configs/                        # Production-ready configurations
+├── docs/                          # Complete documentation + architecture diagrams
+├── scripts/                       # Docker compose and comprehensive tests
+├── demo-apps/                     # Working example applications
+└── IMPLEMENTATION_COMPLETE.md     # Full completion summary
+```
+
+**📚 Complete Documentation**: [`caddy/docs/CADDY_JWT_SETUP.md`](./caddy/docs/CADDY_JWT_SETUP.md)
+**🏗️ Architecture Diagrams**: [`caddy/docs/ARCHITECTURE_DIAGRAMS.md`](./caddy/docs/ARCHITECTURE_DIAGRAMS.md)
+
 ## License
 
 MIT License - see LICENSE file for details.

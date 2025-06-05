@@ -1,0 +1,85 @@
+# Example Docker Compose with Caddy and Protected Services
+# This demonstrates a complete PRODUCTION setup with Caddy protecting multiple services
+#
+# Port Configuration:
+# - Caddy: 80, 443 (external access)
+# - auth: 5000 (internal only)
+# - app1, app2: 80 (internal only)
+# - db: 5432 (internal only)
+#
+# For development setup, use the main docker-compose.yml which exposes services on individual ports
+
+services:
+  # PostgreSQL database
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: catkin_auth
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5434:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Catkin authentication service
+  auth:
+    build: ../../
+    ports:
+      - "5000:5000"
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file:
+      - ../../.env
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/catkin_auth
+    volumes:
+      - ./catkin:/app/catkin
+    command: poetry run uvicorn catkin.src.app:app --host 0.0.0.0 --port 5000 --reload
+
+  # Example protected service 1 - could be any web application
+  app1:
+    image: nginx:alpine
+    volumes:
+      - ../demo-apps/example-app1:/usr/share/nginx/html:ro
+    expose:
+      - "80"
+    # No external port - only accessible through Caddy
+
+  # Example protected service 2 - could be an API or admin panel
+  app2:
+    image: nginx:alpine
+    volumes:
+      - ../demo-apps/example-app2:/usr/share/nginx/html:ro
+    expose:
+      - "80"
+    # No external port - only accessible through Caddy
+
+  # Caddy reverse proxy with JWT authentication
+  caddy:
+    image: caddy:2-alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ../configs/Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./caddy-data:/data
+      - ./caddy-config:/config
+      - ./logs:/var/log/caddy
+    depends_on:
+      - auth
+      - app1
+      - app2
+    environment:
+      - CADDY_INGRESS_NETWORKS=catkin_default
+
+volumes:
+  postgres_data:
+  caddy-data:
+  caddy-config:
