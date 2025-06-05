@@ -165,13 +165,14 @@ poetry run start    # Production server
 
 ## Caddy Integration
 
-This project includes a **complete and fully operational Caddy JWT Authentication System** that demonstrates how to secure normally unsecured services using the catkin authentication service. The Caddy integration provides:
+This project includes a Caddy JWT-authentication system that demonstrates how to secure normally unsecured services using the catkin authentication service. The integration provides:
 
 - **Single Sign-On**: One login protects multiple services
 - **JWT Forward Auth**: Automatic authentication for all proxied services
 - **User Context**: Backend services receive user information via headers
 - **Production Ready**: HTTPS, security headers, and auto-certificate management
 - **Zero Code Changes**: Protect existing applications without modification
+- **Working Demo Apps**: Two fully functional protected applications
 
 ### Quick Access
 
