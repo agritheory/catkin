@@ -75,7 +75,7 @@
         </ul>
 
         <div style="margin-top: 30px;">
-            <a href="/auth/login?redirect=/" class="logout-btn">🚪 Logout</a>
+            <button onclick="logout()" class="logout-btn">🚪 Logout</button>
             <a href="/app2/" style="margin-left: 10px; padding: 10px 20px; background: #3498db; color: white; text-decoration: none; border-radius: 5px;">📱 Switch to App 2</a>
         </div>
 
@@ -103,9 +103,9 @@
 
         // Example of how you might handle logout
         function logout() {
-            // Clear the auth cookie and redirect
-            document.cookie = 'auth_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-            window.location.href = '/auth/login';
+            // Redirect to the auth service logout endpoint
+            // This properly clears the server-side cookie and redirects back
+            window.location.href = '/auth/logout?redirect=' + encodeURIComponent(window.location.origin) + '/auth/login';
         }
     </script>
 </body>

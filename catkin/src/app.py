@@ -299,6 +299,24 @@ async def get_or_create_oauth_user(
 		return None
 
 
+@app.route("/auth/logout", methods=["GET", "POST"])
+async def logout() -> ResponseTypes:
+	"""Logout endpoint - clears auth cookie"""
+	redirect_url = request.args.get("redirect", DEFAULT_REDIRECT)
+
+	response = await make_response(redirect(redirect_url))
+	# Clear the auth cookie by setting it to expire immediately
+	response.set_cookie(
+		"auth_token",
+		"",
+		expires=0,
+		httponly=True,
+		secure=False,  # Set to True in production with HTTPS
+		samesite="Lax",
+	)
+	return response
+
+
 def main() -> None:
 	uvicorn.run(
 		"catkin.src.app:app",
