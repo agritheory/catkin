@@ -1,0 +1,175 @@
+# Caddyfile for JWT-secured services with catkin authentication
+# This configuration demonstrates how to secure normally unsecured services
+# using JWT tokens issued by the catkin authentication service
+
+# Global options to disable automatic HTTPS for development
+{
+	auto_https off
+}
+
+# Development configuration for localhost (non-privileged ports)
+http://localhost:8000 {
+	# Enable logging for debugging (using stdout for development)
+	log {
+		level INFO
+	}
+
+	# Health check endpoint (no authentication required) - must come first
+	handle /health {
+		respond "OK" 200
+	}
+
+	# Authentication service - catkin app
+	handle /auth/* {
+		reverse_proxy localhost:5000
+	}
+
+	# Example protected apps with new path structure
+	handle /app1/* {
+		# Forward authentication to catkin's verify endpoint
+		forward_auth localhost:5000 {
+			uri /auth/verify
+			copy_headers X-User-Email X-User-ID X-Auth-Method
+		}
+
+		# Strip the /app1 prefix before forwarding
+		uri strip_prefix /app1
+
+		# If authentication succeeds, proxy to demo app 1
+		reverse_proxy localhost:8080 {
+			header_up Host {upstream_hostport}
+			header_up X-Real-IP {remote_host}
+		}
+	}
+
+	# Admin panel example
+	handle /app2/* {
+		forward_auth localhost:5000 {
+			uri /auth/verify
+			copy_headers X-User-Email X-User-ID X-Auth-Method
+		}
+
+		# Strip the /app2 prefix before forwarding
+		uri strip_prefix /app2
+
+		reverse_proxy localhost:9000 {
+			header_up Host {upstream_hostport}
+			header_up X-Real-IP {remote_host}
+		}
+	}
+
+	# Legacy path support for backwards compatibility
+	handle /secure-app/* {
+		# Forward authentication to catkin's verify endpoint
+		forward_auth localhost:5000 {
+			uri /auth/verify
+			copy_headers X-User-Email X-User-ID X-Auth-Method
+		}
+
+		# Strip the /secure-app prefix before forwarding
+		uri strip_prefix /secure-app
+
+		# If authentication succeeds, proxy to your secured service
+		reverse_proxy localhost:8080 {
+			header_up Host {upstream_hostport}
+			header_up X-Real-IP {remote_host}
+		}
+	}
+
+	# Another example: Securing a different service on a different path
+	handle /admin/* {
+		forward_auth localhost:5000 {
+			uri /auth/verify
+			copy_headers X-User-Email X-User-ID X-Auth-Method
+		}
+
+		# Strip the /admin prefix before forwarding
+		uri strip_prefix /admin
+
+		reverse_proxy localhost:9000 {
+			header_up Host {upstream_hostport}
+			header_up X-Real-IP {remote_host}
+		}
+	}
+
+	# Public content (no authentication required)
+	handle /public/* {
+		reverse_proxy localhost:8080
+	}
+
+	# Root path - redirect to login page
+	@root path /
+	redir @root /auth/login 302
+
+	# Catch-all for other paths - redirect to login
+	handle {
+		redir /auth/login?redirect={uri} 302
+	}
+
+	# Handle authentication failures with custom error page
+	handle_errors {
+		@auth_required expression {http.error.status_code} == 401
+		redir @auth_required /auth/login?redirect={uri} 302
+	}
+}
+
+# Alternative configuration for subdomain-based services (for production)
+# auth.your-domain.com {
+# 	# Dedicated authentication subdomain
+# 	reverse_proxy localhost:5000
+# }
+
+# app.your-domain.com {
+# 	# Protected application subdomain
+# 	forward_auth auth.your-domain.com {
+# 		uri /auth/verify
+# 		copy_headers X-User-Email X-User-ID X-Auth-Method
+# 	}
+
+# 	reverse_proxy localhost:8080
+
+# 	handle_errors {
+# 		@auth_required expression {http.error.status_code} == 401
+# 		redir @auth_required https://auth.your-domain.com/auth/login?redirect=https://app.your-domain.com{uri} 302
+# 	}
+# }
+
+# Development configuration for simplified testing (localhost:8001)
+http://localhost:8001 {
+	# Health check (no auth required)
+	handle /health {
+		respond "OK" 200
+	}
+
+	# Authentication service
+	handle /auth/* {
+		reverse_proxy localhost:5000
+	}
+
+	# Protected service
+	handle /app/* {
+		forward_auth localhost:5000 {
+			uri /auth/verify
+			copy_headers X-User-Email X-User-ID X-Auth-Method
+		}
+
+		# Remove /app prefix before forwarding
+		uri strip_prefix /app
+		reverse_proxy localhost:8080
+	}
+
+	# Root redirect
+	handle / {
+		redir /auth/login 302
+	}
+
+	# Catch-all redirect
+	handle {
+		redir /auth/login?redirect={uri} 302
+	}
+
+	handle_errors {
+		@auth_required expression {http.error.status_code} == 401
+		redir @auth_required /auth/login?redirect={uri} 302
+	}
+}

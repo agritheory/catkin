@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Protected App 1</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        .user-info {
+            background: #ecf0f1;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .success {
+            color: #27ae60;
+            font-weight: bold;
+        }
+        .logout-btn {
+            background: #e74c3c;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .logout-btn:hover {
+            background: #c0392b;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="header">🛡️ Protected Application 1</h1>
+
+        <div class="success">
+            ✅ Authentication Successful!
+        </div>
+
+        <p>This is a protected service that can only be accessed with valid JWT authentication.</p>
+
+        <div class="user-info">
+            <h3>User Information:</h3>
+            <p><strong>User Email:</strong> <span id="user-email">Loading...</span></p>
+            <p><strong>User ID:</strong> <span id="user-id">Loading...</span></p>
+            <p><strong>Auth Method:</strong> <span id="auth-method">Loading...</span></p>
+            <p><strong>Access Time:</strong> <span id="access-time"></span></p>
+        </div>
+
+        <h3>Available Features:</h3>
+        <ul>
+            <li>📊 Dashboard Analytics</li>
+            <li>👥 User Management</li>
+            <li>⚙️ System Settings</li>
+            <li>📈 Reports</li>
+        </ul>
+
+        <div style="margin-top: 30px;">
+            <a href="/auth/login?redirect=/" class="logout-btn">🚪 Logout</a>
+            <a href="/app2/" style="margin-left: 10px; padding: 10px 20px; background: #3498db; color: white; text-decoration: none; border-radius: 5px;">📱 Switch to App 2</a>
+        </div>
+
+        <hr style="margin: 30px 0;">
+
+        <h3>🔧 Technical Details:</h3>
+        <p>This page demonstrates:</p>
+        <ul>
+            <li>Caddy <code>forward_auth</code> directive protection</li>
+            <li>JWT token validation via catkin auth service</li>
+            <li>User information headers passed from auth service</li>
+            <li>Secure cookie-based session management</li>
+        </ul>
+    </div>
+
+    <script>
+        // Simulate reading headers (in real app, these would come from server-side)
+        document.getElementById('access-time').textContent = new Date().toLocaleString();
+
+        // In a real application, these values would be set by your backend
+        // based on the headers passed from Caddy (X-User-Email, X-User-ID, etc.)
+        document.getElementById('user-email').textContent = 'Retrieved from X-User-Email header';
+        document.getElementById('user-id').textContent = 'Retrieved from X-User-ID header';
+        document.getElementById('auth-method').textContent = 'Retrieved from X-Auth-Method header';
+
+        // Example of how you might handle logout
+        function logout() {
+            // Clear the auth cookie and redirect
+            document.cookie = 'auth_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+            window.location.href = '/auth/login';
+        }
+    </script>
+</body>
+</html>
