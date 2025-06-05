@@ -166,7 +166,11 @@ async def verify() -> ResponseTypes:
 			response.headers["X-Auth-Method"] = "jwt"
 			return response
 
-	return await make_response("", 401)
+	# For forward_auth, return a redirect to login when not authenticated
+	# Caddy's forward_auth automatically sets X-Forwarded-Uri
+	original_uri = request.headers.get("X-Forwarded-Uri", "/")
+	redirect_url = f"/auth/login?redirect={original_uri}"
+	return await make_response("", 302, {"Location": redirect_url})
 
 
 @app.route("/auth/oauth/<provider_name>")

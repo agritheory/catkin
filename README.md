@@ -195,8 +195,8 @@ caddy/                               ✅ FULLY ORGANIZED
 └── IMPLEMENTATION_COMPLETE.md     # Full completion summary
 ```
 
-**📚 Complete Documentation**: [`caddy/docs/CADDY_JWT_SETUP.md`](./caddy/docs/CADDY_JWT_SETUP.md)
-**🏗️ Architecture Diagrams**: [`caddy/docs/ARCHITECTURE_DIAGRAMS.md`](./caddy/docs/ARCHITECTURE_DIAGRAMS.md)
+**📚 Complete Documentation**: [`caddy/docs/SETUP.md`](./caddy/docs/SETUP.md)
+**🏗️ Architecture Diagrams**: [`caddy/docs/ARCHITECTURE.md`](./caddy/docs/ARCHITECTURE.md)
 
 ## License
 

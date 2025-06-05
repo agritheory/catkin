@@ -57,46 +57,6 @@ graph TB
     class Database dataStyle
 ```
 
-## Authentication Flow Sequence
-
-```mermaid
-sequenceDiagram
-    participant U as 👤 User
-    participant B as 🌐 Browser
-    participant C as 🔧 Caddy
-    participant A as 🐱 Catkin Auth
-    participant D as 🗄️ Database
-    participant P as 🛡️ Protected App
-
-    Note over U,P: Initial Request (No Authentication)
-    U->>B: Access /secure-app/
-    B->>C: GET /secure-app/
-    C->>A: forward_auth /auth/verify
-    A-->>C: 401 Unauthorized
-    C-->>B: 302 Redirect to /auth/login
-    B-->>U: Show login page
-
-    Note over U,P: Login Process
-    U->>B: Enter credentials
-    B->>A: POST /auth/login
-    A->>D: Verify user credentials
-    D-->>A: User data
-    A->>A: Generate JWT token
-    A-->>B: 302 Redirect + Set JWT cookie
-    B-->>U: Redirect to /secure-app/
-
-    Note over U,P: Authenticated Request
-    U->>B: Access /secure-app/ (with cookie)
-    B->>C: GET /secure-app/ + JWT cookie
-    C->>A: forward_auth /auth/verify + cookie
-    A->>A: Validate JWT token
-    A-->>C: 200 OK + User headers
-    C->>P: Proxy request + headers
-    P-->>C: Protected content
-    C-->>B: Protected content
-    B-->>U: Show protected app
-```
-
 ## Configuration Flow
 
 ```mermaid
