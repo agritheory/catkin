@@ -238,6 +238,7 @@ def build_authorize_url(
 	base_url = provider.custom_base_url or provider.base_url
 	if not base_url:
 		raise ValueError(f"No base URL configured for provider {provider.name}")
+	base_url = base_url.replace("host.docker.internal", "localhost")
 
 	# Build full authorize URL
 	if provider.authorize_url and provider.authorize_url.startswith("http"):
@@ -255,7 +256,6 @@ def build_authorize_url(
 	if state:
 		params["state"] = state
 
-	print(f"{auth_url}?{urlencode(params)}")
 	return f"{auth_url}?{urlencode(params)}"
 
 
@@ -298,6 +298,12 @@ async def exchange_code_for_token(
 					f"Token exchange failed for {provider.name}: {response.status_code} - {response.text}"
 				)
 				return None
+	except httpx.ConnectError as e:
+		_logger.error(f"Connection error while exchanging token for {provider.name}: {e}")
+		return None
+	except httpx.ReadTimeout:
+		_logger.error(f"Request for exchanging token with {provider.name} timed out")
+		return None
 	except Exception as e:
 		_logger.error(f"Token exchange error for {provider.name}: {e}")
 		return None
