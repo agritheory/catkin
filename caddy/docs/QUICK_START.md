@@ -76,8 +76,8 @@ catkin/
 │   │   ├── Caddyfile           # Basic development configuration
 │   │   └── Caddyfile.production # Production-ready configuration
 │   ├── docs/                   # Documentation
-│   │   ├── CADDY_JWT_SETUP.md  # Detailed setup guide
-│   │   └── ARCHITECTURE_DIAGRAMS.md # System architecture
+│   │   ├── SETUP.md  # Detailed setup guide
+│   │   └── ARCHITECTURE.md # System architecture
 │   ├── scripts/                # Deployment and testing
 │   │   ├── docker-compose.caddy.yml # Complete Docker setup
 │   │   └── test-caddy-auth.sh  # Automated test script
@@ -119,25 +119,6 @@ handle /secure-app/* {
 2. **Connection Refused**: Verify all services are running
 3. **Redirect Loops**: Check cookie domain/path settings
 
-### Debug Commands
-
-```bash
-# Check service status
-docker-compose ps
-
-# View catkin logs
-docker-compose logs web
-
-# View Caddy logs
-tail -f /var/log/caddy/access.log
-
-# Test auth endpoint directly
-curl -i http://localhost:5000/auth/verify
-
-# Test with cookie
-curl -i --cookie "auth_token=your-jwt-token" http://localhost:5000/auth/verify
-```
-
 ## Next Steps
 
 1. **Customize Services**: Replace example apps with your actual services
@@ -162,7 +143,7 @@ curl -i --cookie "auth_token=your-jwt-token" http://localhost:5000/auth/verify
 ## Support
 
 For issues or questions:
-1. Check the detailed documentation in `CADDY_JWT_SETUP.md`
+1. Check the detailed documentation in `SETUP.md`
 2. Run the test script: `./test-caddy-auth.sh`
 3. Review Caddy documentation: https://caddyserver.com/docs/
 4. Check catkin auth service logs

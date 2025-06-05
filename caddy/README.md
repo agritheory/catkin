@@ -11,8 +11,8 @@ caddy/
 │   ├── Caddyfile               # Development configuration (HTTP, ports 8000/8001)
 │   └── Caddyfile.production    # Production configuration (HTTPS, security headers)
 ├── docs/                       # Documentation and architecture
-│   ├── CADDY_JWT_SETUP.md      # Complete setup and configuration guide
-│   └── ARCHITECTURE_DIAGRAMS.md # System architecture and flow diagrams
+│   ├── SETUP.md      # Complete setup and configuration guide
+│   └── ARCHITECTURE.md # System architecture and flow diagrams
 ├── scripts/                    # Deployment and testing scripts
 │   ├── docker-compose.caddy.yml # Docker compose setup for complete system
 │   └── test-caddy-auth.sh      # Automated test script for validation
@@ -100,7 +100,7 @@ cd caddy/scripts
 
 ## Documentation
 
-See `docs/CADDY_JWT_SETUP.md` for complete setup instructions and `docs/ARCHITECTURE_DIAGRAMS.md` for system architecture diagrams.
+See `docs/SETUP.md` for complete setup instructions and `docs/ARCHITECTURE.md` for system architecture diagrams.
 
 ## Testing
 
