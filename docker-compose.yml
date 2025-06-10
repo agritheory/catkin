@@ -16,6 +16,8 @@ services:
       POSTGRES_PASSWORD: postgres
     ports:
       - "5434:5432"
+    networks:
+      - catkin-network
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -36,6 +38,8 @@ services:
       - .env
     environment:
       - DATABASE_URL=postgresql://postgres:postgres@db:5432/catkin_auth
+    networks:
+      - catkin-network
     volumes:
       - ./catkin:/app/catkin
     command: poetry run uvicorn catkin.src.app:app --host 0.0.0.0 --port 5000 --reload
@@ -45,16 +49,20 @@ services:
   # Example unprotected service 1 - could be any web application
   app1:
     image: nginx:alpine
-    ports:
-      - "8080:80"  # Expose on port 8080 for Caddy to proxy to
+    expose:
+      - "80"  # No ports exposed to the host, only accessible through Caddy
+    networks:
+      - catkin-network
     volumes:
       - ./caddy/demo-apps/example-app1:/usr/share/nginx/html:ro
 
   # Example unprotected service 2 - could be an API or admin panel
   app2:
     image: nginx:alpine
-    ports:
-      - "9000:80"  # Expose on port 9000 for Caddy to proxy to
+    expose:
+      - "80"  # No ports exposed to the host, only accessible through Caddy
+    networks:
+      - catkin-network
     volumes:
       - ./caddy/demo-apps/example-app2:/usr/share/nginx/html:ro
 
@@ -62,8 +70,10 @@ services:
   caddy:
     image: caddy:2-alpine
     ports:
-      - "80:80"
+      - "8000:80"
       - "443:443"
+    networks:
+      - catkin-network
     volumes:
       - ./caddy/configs/Caddyfile:/etc/caddy/Caddyfile:ro
       - ./caddy/container/data:/data
@@ -80,3 +90,7 @@ volumes:
   postgres_data:
   caddy-data:
   caddy-config:
+
+networks:
+  catkin-network:
+    driver: bridge

@@ -152,6 +152,12 @@ async def handle_login() -> ResponseTypes:
 		return redirect(f"/auth/login?error=Login failed&redirect={redirect_url}")
 
 
+@app.route("/health", methods=["GET"])
+async def health() -> ResponseTypes:
+	"""Health check endpoint for load balancers and monitoring"""
+	return await make_response("OK", 200)
+
+
 @app.route("/auth/verify", methods=["GET"])
 async def verify() -> ResponseTypes:
 	"""Caddy forward_auth endpoint - checks if user is authenticated"""
