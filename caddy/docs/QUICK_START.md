@@ -12,10 +12,10 @@ This guide will get you up and running with Caddy protecting services using JWT 
 
 ```bash
 # Start catkin auth service and database
-docker-compose up -d
+docker compose up -d
 
 # Wait for services to be healthy
-docker-compose ps
+docker compose ps
 ```
 
 ## Step 2: Create Test User (Optional)

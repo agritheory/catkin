@@ -153,7 +153,7 @@ In development, protected services are exposed on specific ports for testing:
 1. Start your services:
    ```bash
    # Start catkin auth service (port 5000)
-   docker-compose up -d
+   docker compose up -d
 
    # Protected services are already running on:
    # - App 1: http://localhost:8080
@@ -186,7 +186,7 @@ In production, services are only accessible through Caddy:
 1. Deploy with Docker Compose:
    ```bash
    cd caddy/scripts
-   docker-compose -f docker-compose.caddy.yml up -d
+   docker compose -f docker-compose.caddy.yml up -d
    ```
 
 2. Services configuration:
