@@ -1,6 +1,6 @@
 # Caddy JWT Authentication System Architecture
 
-## System Overview Diagram
+## System Overview
 
 ```mermaid
 graph TB
@@ -28,8 +28,8 @@ graph TB
     JWT -->|Set as HttpOnly cookie| Browser
 
     %% Protected Services
-    AuthSuccess -->|Proxy with headers| ProtectedApp1[🛡️ Protected App 1<br/>Port 8080]
-    AuthSuccess -->|Proxy with headers| ProtectedApp2[🛡️ Admin Panel<br/>Port 9000]
+    AuthSuccess -->|Proxy with headers| ProtectedApp1[🛡️ Protected App]
+    AuthSuccess -->|Proxy with headers| ProtectedApp2[🛡️ Admin Panel]
 
     %% Headers passed to apps
     AuthSuccess -.->|X-User-Email<br/>X-User-ID<br/>X-Auth-Method| HeaderFlow[📤 User Headers]
@@ -57,44 +57,47 @@ graph TB
     class Database dataStyle
 ```
 
-## Configuration Flow
+## Request Flow
 
 ```mermaid
-flowchart TD
-    %% Configuration Files
-    DevConfig[📄 Caddyfile<br/>Development]
-    ProdConfig[📄 Caddyfile.production<br/>Production]
-    DockerConfig[🐳 docker-compose.yml]
+sequenceDiagram
+    participant User as 👤 User
+    participant Browser as 🌐 Browser
+    participant Caddy as 🔧 Caddy Proxy<br>(:8000)
+    participant AuthService as 🐱 Catkin Auth Service<br>(:5000)
+    participant ProtectedApp1 as 🛡️ Protected App
+    participant ProtectedApp2 as 🛡️ Admin Panel
 
-    %% Caddy Configuration Sections
-    DevConfig --> GlobalOpts[🌐 Global Options<br/>auto_https off]
-    DevConfig --> AuthProxy[🔗 Auth Service Proxy<br/>handle /auth/*]
-    DevConfig --> ForwardAuth[🔐 Forward Auth<br/>forward_auth directive]
-    DevConfig --> AppProxy[📱 App Proxy<br/>reverse_proxy to apps]
-    DevConfig --> ErrorHandle[❌ Error Handling<br/>401 → login redirect]
-    DevConfig --> HealthEndpoint[💚 Health Check<br/>no auth required]
+    User->>Browser: Open app URL (e.g., /app1)
+    Browser->>Caddy: GET /app1/
+    Caddy->>AuthService: forward_auth /auth/verify
+    alt No JWT cookie
+        AuthService-->>Caddy: 401 Unauthorized
+        Caddy-->>Browser: Redirect to /auth/login
+        Browser->>AuthService: GET /auth/login
+        AuthService-->>Browser: Render login page
+    else Valid JWT cookie
+        AuthService-->>Caddy: 200 OK + User Headers
+        Caddy->>ProtectedApp1: Proxy request with headers
+        ProtectedApp1-->>Caddy: Response data
+        Caddy-->>Browser: Render app content
+    end
 
-    %% Production additions
-    ProdConfig --> HTTPS[🔒 HTTPS Auto-certs]
-    ProdConfig --> SecurityHeaders[🛡️ Security Headers<br/>CSP, HSTS, etc.]
+    Browser->>Caddy: GET /app2/
+    Caddy->>AuthService: forward_auth /auth/verify
+    alt No JWT cookie
+        AuthService-->>Caddy: 401 Unauthorized
+        Caddy-->>Browser: Redirect to /auth/login
+    else Valid JWT cookie
+        AuthService-->>Caddy: 200 OK + User Headers
+        Caddy->>ProtectedApp2: Proxy request with headers
+        ProtectedApp2-->>Caddy: Response data
+        Caddy-->>Browser: Render admin panel content
+    end
 
-    %% Docker Setup
-    DockerConfig --> CatkinService[🐱 Catkin Service<br/>Port 5000]
-    DockerConfig --> PostgresService[🗄️ PostgreSQL<br/>Port 5432]
-    DockerConfig --> DemoApps[🎭 Demo Apps<br/>Ports 8080, 9000]
+    Browser->>Caddy: GET /health (no auth required)
+    Caddy-->>Browser: 200 OK Health Check Response
 
-    %% Flow connections
-    ForwardAuth -.->|Validates with| AuthProxy
-    AppProxy -.->|Protected by| ForwardAuth
-    ErrorHandle -.->|Redirects to| AuthProxy
-
-    classDef configStyle fill:#e3f2fd,stroke:#0d47a1,stroke-width:2px
-    classDef serviceStyle fill:#f1f8e9,stroke:#33691e,stroke-width:2px
-    classDef securityStyle fill:#fff8e1,stroke:#f57f17,stroke-width:2px
-
-    class DevConfig,ProdConfig,DockerConfig configStyle
-    class CatkinService,PostgresService,DemoApps serviceStyle
-    class ForwardAuth,SecurityHeaders,HTTPS,ErrorHandle securityStyle
 ```
 
 ## Data Flow Architecture
@@ -221,15 +224,8 @@ graph TB
     %% Problems highlighted
     UnsecuredApp1 -.->|❌ No auth check| Security1[🚨 Security Gap 1]
     UnsecuredApp2 -.->|❌ No auth check| Security2[🚨 Security Gap 2]
-
-    Browser -.->|❌ Multiple logins| LoginProblem[🔄 Session Management Hell]
     UnsecuredApp1 -.->|❌ No user context| Context1[❓ Who is this user?]
     UnsecuredApp2 -.->|❌ No user context| Context2[❓ Who is this user?]
-
-    %% Port management nightmare
-    Browser -.->|🔗 Remember port 8080| PortProblem1[😤 Port Management]
-    Browser -.->|🔗 Remember port 9000| PortProblem2[😤 Port Management]
-    Browser -.->|🔗 Remember port 5000| PortProblem3[😤 Port Management]
 
     classDef problemStyle fill:#ffebee,stroke:#d32f2f,stroke-width:3px
     classDef unsecuredStyle fill:#fff3e0,stroke:#f57c00,stroke-width:2px
@@ -253,14 +249,8 @@ graph TB
     CatkinAuth --> Database[(🗄️ Database)]
 
     %% Protected services
-    Caddy -->|✅ Authenticated proxy| SecuredApp1[🛡️ Secured App 1<br/>Port 8080]
-    Caddy -->|✅ Authenticated proxy| SecuredApp2[🛡️ Secured App 2<br/>Port 9000]
-
-    %% Solutions highlighted
-    Caddy -.->|✅ Single login| SolutionAuth[🔐 Centralized Auth]
-    Caddy -.->|✅ User context| SolutionContext[👤 X-User-Email headers]
-    Caddy -.->|✅ Hidden complexity| SolutionPorts[🌐 Single endpoint]
-    Caddy -.->|✅ HTTPS/Security| SolutionSecurity[🔒 Auto-TLS + Headers]
+    Caddy -->|✅ Authenticated proxy| SecuredApp1[🛡️ Secured App 1]
+    Caddy -->|✅ Authenticated proxy| SecuredApp2[🛡️ Secured App 2]
 
     classDef solutionStyle fill:#e8f5e8,stroke:#2e7d32,stroke-width:3px
     classDef securedStyle fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
