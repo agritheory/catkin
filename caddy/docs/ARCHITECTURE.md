@@ -64,7 +64,7 @@ flowchart TD
     %% Configuration Files
     DevConfig[📄 Caddyfile<br/>Development]
     ProdConfig[📄 Caddyfile.production<br/>Production]
-    DockerConfig[🐳 docker-compose.caddy.yml]
+    DockerConfig[🐳 docker-compose.yml]
 
     %% Caddy Configuration Sections
     DevConfig --> GlobalOpts[🌐 Global Options<br/>auto_https off]
