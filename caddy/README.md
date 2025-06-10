@@ -14,7 +14,6 @@ caddy/
 │   ├── SETUP.md      # Complete setup and configuration guide
 │   └── ARCHITECTURE.md # System architecture and flow diagrams
 ├── scripts/                    # Deployment and testing scripts
-│   ├── docker-compose.caddy.yml # Docker compose setup for complete system
 │   └── test-caddy-auth.sh      # Automated test script for validation
 └── demo-apps/                  # Example protected applications
     ├── example-app1/           # Demo web application
@@ -43,8 +42,7 @@ caddy/
 
 1. **Deploy with Docker Compose:**
    ```bash
-   cd caddy/scripts
-   docker compose -f docker-compose.caddy.yml up -d
+   docker compose up -d
    ```
 
 2. **Production endpoints:**

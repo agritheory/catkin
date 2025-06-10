@@ -185,8 +185,7 @@ In production, services are only accessible through Caddy:
 
 1. Deploy with Docker Compose:
    ```bash
-   cd caddy/scripts
-   docker compose -f docker-compose.caddy.yml up -d
+   docker compose up -d
    ```
 
 2. Services configuration:

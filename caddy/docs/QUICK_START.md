@@ -79,7 +79,6 @@ catkin/
 │   │   ├── SETUP.md  # Detailed setup guide
 │   │   └── ARCHITECTURE.md # System architecture
 │   ├── scripts/                # Deployment and testing
-│   │   ├── docker-compose.caddy.yml # Complete Docker setup
 │   │   └── test-caddy-auth.sh  # Automated test script
 │   └── demo-apps/              # Example protected services
 │       ├── example-app1/       # Demo web application
