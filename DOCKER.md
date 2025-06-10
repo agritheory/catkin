@@ -25,7 +25,7 @@ docker run -p 80:80 -p 443:443 \
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `DATABASE_URL` | PostgreSQL connection string | `postgresql://postgres:postgres@localhost:5432/catkin_auth` |
+| `DATABASE_URL` | PostgreSQL connection string (required) | None |
 | `JWT_SECRET` | Secret key for JWT token generation | `your-secret-key-change-in-production` |
 | `FERNET_KEY` | Key for password encryption | None |
 | `DEFAULT_REDIRECT` | Default redirect after login | `/` |

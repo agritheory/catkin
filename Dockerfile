@@ -122,29 +122,40 @@ RUN chmod +x /wait-for-it.sh
 # Create an entrypoint script with environment variable support
 COPY <<EOF /entrypoint.sh
 #!/bin/sh
-# Set default environment variables if not provided
+# Check if DATABASE_URL is provided
 if [ -z "\${DATABASE_URL}" ]; then
-    echo "WARNING: No DATABASE_URL environment variable set. Using default value."
-    export DATABASE_URL="postgresql://postgres:postgres@localhost:5432/catkin_auth"
+    echo "ERROR: No DATABASE_URL environment variable set."
+    echo "Please provide a valid PostgreSQL connection URL using the DATABASE_URL environment variable."
+    echo "Example: DATABASE_URL=postgresql://user:password@host:port/database"
+    exit 1
 fi
 
-if [ -z "\${JWT_SECRET}" ]; then
-    echo "WARNING: No JWT_SECRET environment variable set. Using insecure default value!"
-    echo "WARNING: This is fine for development but must be changed in production!"
-    export JWT_SECRET="default-jwt-secret-change-in-production"
+# Check if the URL is PostgreSQL
+if [[ ! "\$DATABASE_URL" == postgresql* ]]; then
+    echo "ERROR: Only PostgreSQL databases are supported."
+    echo "DATABASE_URL must start with postgresql://"
+    exit 1
 fi
 
-# Parse the database host and port from DATABASE_URL
+# Parse the database host and port from DATABASE_URL and wait for it
 DB_HOST=\$(echo \$DATABASE_URL | sed -n 's/.*@\([^:]*\).*/\1/p')
 DB_PORT=\$(echo \$DATABASE_URL | sed -n 's/.*:\([0-9]*\)\/.*/\1/p')
 
 # If host and port were extracted successfully, wait for the database
 if [ ! -z "\$DB_HOST" ] && [ ! -z "\$DB_PORT" ]; then
-    echo "Waiting for database at \$DB_HOST:\$DB_PORT..."
+    echo "Waiting for PostgreSQL database at \$DB_HOST:\$DB_PORT..."
     /wait-for-it.sh \$DB_HOST \$DB_PORT 60
     if [ \$? -ne 0 ]; then
-        echo "ERROR: Database at \$DB_HOST:\$DB_PORT is not available. Continuing anyway..."
+        echo "ERROR: Database at \$DB_HOST:\$DB_PORT is not available."
+        exit 1
     fi
+fi
+
+# Check JWT_SECRET
+if [ -z "\${JWT_SECRET}" ]; then
+    echo "WARNING: No JWT_SECRET environment variable set. Using insecure default value!"
+    echo "WARNING: This is fine for development but must be changed in production!"
+    export JWT_SECRET="default-jwt-secret-change-in-production"
 fi
 
 # Check if a user-provided Caddyfile exists, otherwise use the default

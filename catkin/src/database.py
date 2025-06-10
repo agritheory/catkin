@@ -11,9 +11,21 @@ _logger = logging.getLogger(__name__)
 class Database:
 	def __init__(self, database_url: str | None = None):
 		env = Env()
-		self.database_url = database_url or env.str(
-			"DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/catkin_auth"
-		)
+		if not database_url:
+			try:
+				self.database_url = env.str("DATABASE_URL")
+			except Exception:
+				raise ValueError(
+					"No DATABASE_URL environment variable set. A database connection is required."
+				)
+		else:
+			self.database_url = database_url
+
+		if not self.database_url.startswith("postgresql://"):
+			raise ValueError(
+				"Only PostgreSQL databases are supported. DATABASE_URL must start with postgresql://"
+			)
+
 		self.pool = None
 
 	async def connect(self) -> asyncpg.Pool:
