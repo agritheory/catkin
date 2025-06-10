@@ -8,7 +8,7 @@ This folder contains all files related to the Caddy JWT authentication system th
 caddy/
 ├── README.md                    # This file - overview of the Caddy system
 ├── configs/                     # Caddy configuration files
-│   ├── Caddyfile               # Development configuration (HTTP, ports 8000/8001)
+│   ├── Caddyfile               # Development configuration (HTTP, ports 8000)
 │   └── Caddyfile.production    # Production configuration (HTTPS, security headers)
 ├── docs/                       # Documentation and architecture
 │   ├── SETUP.md      # Complete setup and configuration guide
@@ -70,7 +70,7 @@ cd caddy/scripts
 ### Development Environment
 | Service | Port | Access | Purpose |
 |---------|------|--------|---------|
-| Caddy Gateway | 8000, 8001 | External | Main entry point |
+| Caddy Gateway | 8000 | External | Main entry point |
 | Auth Service | 5000 | External (direct) | catkin authentication |
 | Protected App 1 | 8080 | External (direct) | Demo application |
 | Protected App 2 | 9000 | External (direct) | Admin panel |
@@ -91,7 +91,7 @@ cd caddy/scripts
 
 ## Configuration
 
-- **Development**: Uses HTTP on ports 8000/8001 for easy local testing
+- **Development**: Uses HTTP on ports 8000 for easy local testing
 - **Production**: HTTPS with Let's Encrypt certificates and security headers
 - **Authentication**: Forward auth to catkin service on port 5000
 - **Protected Services**: Any service can be protected by adding forward_auth directive

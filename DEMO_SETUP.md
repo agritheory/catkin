@@ -2,7 +2,7 @@
 
 ## Services Running:
 - **Catkin Auth Service**: `http://localhost:5000`
-- **Caddy Proxy**: `http://localhost:8000` & `http://localhost:8001`
+- **Caddy Proxy**: `http://localhost:8000`
 - **Protected App 1**: `http://localhost:8080` (behind Caddy auth)
 - **Protected App 2**: `http://localhost:9000` (behind Caddy auth)
 
@@ -30,12 +30,12 @@ curl -i http://localhost:8080/
 Open your browser and visit:
 
 **Main Protected App:**
-- URL: `http://localhost:8000/secure-app/`
+- URL: `http://localhost:8080/`
 - Expected: Redirects to login page
 - After login: Shows protected app content
 
 **Alternative Protected App:**
-- URL: `http://localhost:8001/app/`
+- URL: `http://localhost:9000/`
 - Expected: Redirects to login page
 - After login: Shows protected app content
 
@@ -57,7 +57,7 @@ You can also use OAuth with configured providers (Frappe, GitHub, Google).
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
 │   Browser       │    │   Caddy Proxy   │    │  Catkin Auth    │
-│                 │    │  :8000 :8001    │    │     :5000       │
+│                 │    │      :8000      │    │     :5000       │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
          │                       │                       │
          │ 1. GET /secure-app/   │                       │

@@ -198,7 +198,7 @@ In production, services are only accessible through Caddy:
 
 | Service | Development | Production (Docker) | Purpose |
 |---------|-------------|-------------------|---------|
-| Caddy Gateway | :8000, :8001 | :80, :443 | Main entry point |
+| Caddy Gateway | :8000 | :80, :443 | Main entry point |
 | Auth Service | :5000 | auth:5000 | Authentication |
 | Protected App 1 | :8080 | app1:80 | Demo application |
 | Protected App 2 | :9000 | app2:80 | Admin panel |

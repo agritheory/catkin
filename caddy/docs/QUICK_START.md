@@ -60,10 +60,6 @@ docker run -d --name protected-app2 -p 9000:80 -v $(pwd)/caddy/demo-apps/example
 # 2. Should redirect to http://localhost:8000/auth/login
 # 3. Login with your credentials or OAuth
 # 4. Should be redirected back to protected resource
-
-# Alternative test URLs:
-# - http://localhost:8001/app/ (different Caddy instance)
-# - http://localhost:8000/admin/ (admin-specific path)
 ```
 
 ## Directory Structure After Setup

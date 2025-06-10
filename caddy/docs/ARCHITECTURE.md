@@ -8,7 +8,7 @@ graph TB
     User[👤 User] --> Browser[🌐 Browser]
 
     %% Caddy Proxy Layer
-    Browser --> Caddy[🔧 Caddy Reverse Proxy<br/>Port 8000/8001]
+    Browser --> Caddy[🔧 Caddy Reverse Proxy<br/>Port 8000]
 
     %% Authentication Flow
     Caddy -->|forward_auth request| AuthCheck{🔐 Auth Check<br/>/auth/verify}

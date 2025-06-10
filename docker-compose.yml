@@ -6,11 +6,8 @@
 # - auth: 5000 (internal only)
 # - app1, app2: 80 (internal only)
 # - db: 5432 (internal only)
-#
-# For development setup, use the main docker-compose.yml which exposes services on individual ports
 
 services:
-  # PostgreSQL database
   db:
     image: postgres:16-alpine
     environment:
@@ -45,23 +42,21 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
-  # Example protected service 1 - could be any web application
+  # Example unprotected service 1 - could be any web application
   app1:
     image: nginx:alpine
+    ports:
+      - "8080:80"  # Expose on port 8080 for Caddy to proxy to
     volumes:
       - ./caddy/demo-apps/example-app1:/usr/share/nginx/html:ro
-    expose:
-      - "80"
-    # No external port - only accessible through Caddy
 
-  # Example protected service 2 - could be an API or admin panel
+  # Example unprotected service 2 - could be an API or admin panel
   app2:
     image: nginx:alpine
+    ports:
+      - "9000:80"  # Expose on port 9000 for Caddy to proxy to
     volumes:
       - ./caddy/demo-apps/example-app2:/usr/share/nginx/html:ro
-    expose:
-      - "80"
-    # No external port - only accessible through Caddy
 
   # Caddy reverse proxy with JWT authentication
   caddy:

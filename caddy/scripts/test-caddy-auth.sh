@@ -8,7 +8,6 @@ set -e
 # Configuration
 AUTH_URL="http://localhost:5000"
 PROXY_URL="http://localhost:8000"  # Caddy proxy
-APP_URL="http://localhost:8001"   # Alternative Caddy proxy
 TEST_USER="admin@agritheory.com"
 TEST_PASSWORD="password123"
 
