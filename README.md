@@ -54,7 +54,7 @@ A lightweight authentication server built with Quart that provides both local an
 
 3. **Start the services**:
    ```bash
-   docker-compose up -d
+   docker compose up -d
    ```
 
 4. **Access the application**:

@@ -44,7 +44,7 @@ caddy/
 1. **Deploy with Docker Compose:**
    ```bash
    cd caddy/scripts
-   docker-compose -f docker-compose.caddy.yml up -d
+   docker compose -f docker-compose.caddy.yml up -d
    ```
 
 2. **Production endpoints:**
