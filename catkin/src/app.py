@@ -33,9 +33,13 @@ app = Quart(
 )
 
 env = Env()
-DATABASE_URL = env.str(
-	"DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/catkin_auth"
-)
+try:
+	DATABASE_URL = env.str("DATABASE_URL")
+except Exception:
+	raise ValueError(
+		"No DATABASE_URL environment variable set. A database connection is required."
+	)
+
 JWT_SECRET = env.str("JWT_SECRET", "your-secret-key-change-in-production")
 FERNET_KEY = env.str("FERNET_KEY", None)
 DEFAULT_REDIRECT = env.str("DEFAULT_REDIRECT", "/")
