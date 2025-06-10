@@ -56,7 +56,7 @@ docker run -d --name protected-app2 -p 9000:80 -v $(pwd)/caddy/demo-apps/example
 ./test-caddy-auth.sh
 
 # Or test manually:
-# 1. Open browser to http://localhost:8000/secure-app/
+# 1. Open browser to http://localhost:8000/app1/
 # 2. Should redirect to http://localhost:8000/auth/login
 # 3. Login with your credentials or OAuth
 # 4. Should be redirected back to protected resource
@@ -91,7 +91,7 @@ catkin/
 
 ```caddyfile
 # Protected service configuration
-handle /secure-app/* {
+handle /app1/* {
     forward_auth localhost:5000 {
         uri /auth/verify
         copy_headers X-User-Email X-User-ID X-Auth-Method

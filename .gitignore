@@ -55,3 +55,6 @@ certs
 # Hasn't been proprietary before, it will be going forward
 docker-compose.prod.yml
 alarms.shelve
+
+# Caddy container logs from local development
+caddy/container/

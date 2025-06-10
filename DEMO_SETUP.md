@@ -15,8 +15,8 @@
 
 ### 1. Quick Verification
 ```bash
-# Test protected resource (should return 401)
-curl -i http://localhost:8000/secure-app/
+# Test protected resource (should return a 302 redirect to login)
+curl -i http://localhost:8000/app1/
 
 # Test auth service (should return 200 with login page)
 curl -i http://localhost:8000/auth/login
@@ -60,19 +60,19 @@ You can also use OAuth with configured providers (Frappe, GitHub, Google).
 │                 │    │      :8000      │    │     :5000       │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
          │                       │                       │
-         │ 1. GET /secure-app/   │                       │
+         │ 1. GET /app1/         │                       │
          ├──────────────────────►│                       │
          │                       │ 2. forward_auth       │
          │                       ├──────────────────────►│
          │                       │ /auth/verify          │
          │                       │                       │
-         │                       │ 3. 401 (no token)    │
+         │                       │ 3. 401 (no token)     │
          │                       │◄──────────────────────┤
          │ 4. 401 Unauthorized   │                       │
          │◄──────────────────────┤                       │
          │                       │                       │
          │ 5. GET /auth/login    │                       │
-         ├──────────────────────►│ 6. Proxy to auth     │
+         ├──────────────────────►│ 6. Proxy to auth      │
          │                       ├──────────────────────►│
          │ 7. Login page         │                       │
          │◄──────────────────────┼───────────────────────┘
@@ -83,18 +83,18 @@ You can also use OAuth with configured providers (Frappe, GitHub, Google).
          │ 10. Set auth cookie   │                       │
          │◄──────────────────────┼───────────────────────┘
          │                       │
-         │ 11. GET /secure-app/  │
+         │ 11. GET /app1/        │
          │     (with cookie)     │
          ├──────────────────────►│ 12. forward_auth
          │                       ├──────────────────────►│
          │                       │ /auth/verify          │
          │                       │                       │
-         │                       │ 13. 200 + headers    │
+         │                       │ 13. 200 + headers     │
          │                       │◄──────────────────────┤
          │                       │ X-User-Email          │
          │                       │ X-User-ID             │
          │                       │                       │
-         │                       │ 14. Proxy to app     │
+         │                       │ 14. Proxy to app      │
          │                       ├──────────────────────►│
          │                       │    :8080              │
          │ 15. Protected content │                       │
@@ -118,7 +118,7 @@ You can also use OAuth with configured providers (Frappe, GitHub, Google).
 - **OAuth Support**: Multiple OAuth providers configured
 
 ### ✅ Protected Resources
-- **Path-based Protection**: `/secure-app/*`, `/admin/*`
+- **Path-based Protection**: `/app1/*`, `/admin/*`
 - **Service Isolation**: Different services on different ports
 - **Prefix Stripping**: URL paths correctly modified
 - **Error Handling**: Proper 401 responses
@@ -147,7 +147,7 @@ For easier testing, use the OAuth providers that are already configured.
 
 ## 🚀 Next Steps
 
-1. **Test in Browser**: Open `http://localhost:8000/secure-app/`
+1. **Test in Browser**: Open `http://localhost:8000/app1/`
 2. **Try OAuth Login**: Use GitHub, Google, or Frappe OAuth
 3. **Customize Services**: Replace example apps with your real services
 4. **Production Setup**: Use `caddy/configs/Caddyfile.production` for real deployment
