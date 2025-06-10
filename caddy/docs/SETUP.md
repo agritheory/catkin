@@ -27,35 +27,53 @@ The configuration uses Caddy's `forward_auth` directive to authenticate requests
 
 ## Configuration Examples
 
-### Development Configuration (localhost with direct ports)
+### Complete Development Configuration Example
 
 ```caddyfile
-# Development setup - services accessible on localhost ports
-http://localhost:8000 {
-    # Authentication service
-    handle /auth/* {
-        reverse_proxy localhost:5000
-    }
+# Development configuration for localhost (non-privileged ports)
+:80 {
+	# Static files for auth service (CSS, images, etc.)
+	handle /static/* {
+		reverse_proxy auth:5000
+	}
 
-    # Protected service 1 (development port)
-    handle /app1/* {
-        forward_auth localhost:5000 {
-            uri /auth/verify
-            copy_headers X-User-Email X-User-ID X-Auth-Method
-        }
-        uri strip_prefix /app1
-        reverse_proxy localhost:8080  # Direct port access
-    }
+	# Authentication service - catkin app (all other auth routes)
+	handle /auth/* {
+		reverse_proxy auth:5000
+	}
 
-    # Protected service 2 (development port)
-    handle /app2/* {
-        forward_auth localhost:5000 {
-            uri /auth/verify
-            copy_headers X-User-Email X-User-ID X-Auth-Method
-        }
-        uri strip_prefix /app2
-        reverse_proxy localhost:9000  # Direct port access
-    }
+	# Example protected apps with new path structure
+	handle /app/* {
+		# Forward authentication to catkin's verify endpoint
+		forward_auth auth:5000 {
+			uri /auth/verify
+			copy_headers X-User-Email X-User-ID X-Auth-Method
+		}
+
+		# Strip the /app prefix before forwarding to the app
+		uri strip_prefix /app
+
+		# If authentication succeeds, proxy to app
+		reverse_proxy app:80 {
+			header_up Host {upstream_hostport}
+			header_up X-Real-IP {remote_host}
+		}
+	}
+
+	# Public content (no authentication required)
+	handle /public/* {
+		reverse_proxy app:80
+	}
+
+	# Root path - redirect to login page
+	handle_path / {
+		redir /auth/login 302
+	}
+
+	# Catch-all for other paths - redirect to login
+	handle {
+		redir /auth/login?redirect={uri} 302
+	}
 }
 ```
 
@@ -194,66 +212,15 @@ In production, services are only accessible through Caddy:
    - **Protected App 2**: `app2:80` (internal only)
    - **Caddy Gateway**: `localhost:80` and `localhost:443` (external)
 
-### Port Reference Guide
+## Docker Volume Configuration
 
-| Service | Development | Production (Docker) | Purpose |
-|---------|-------------|-------------------|---------|
-| Caddy Gateway | :8000 | :80, :443 | Main entry point |
-| Auth Service | :5000 | auth:5000 | Authentication |
-| Protected App 1 | :8080 | app1:80 | Demo application |
-| Protected App 2 | :9000 | app2:80 | Admin panel |
-| Database | :5434 | db:5432 | PostgreSQL |
+The Docker setup includes persistent volumes for both the PostgreSQL database and Caddy's data:
 
-## Advanced Configuration
-
-### Custom Authentication Logic
-
-You can customize the verification endpoint in catkin to add additional checks:
-
-```python
-@app.route("/auth/verify", methods=["GET"])
-async def verify() -> ResponseTypes:
-    token = request.cookies.get("auth_token")
-
-    if token:
-        payload = verify_jwt_token(token)
-        if payload:
-            # Add custom authorization logic here
-            # e.g., check user roles, permissions, etc.
-
-            response = await make_response("", 200)
-            response.headers["X-User-Email"] = payload["username"]
-            response.headers["X-User-ID"] = str(payload["user_id"])
-            response.headers["X-Auth-Method"] = "jwt"
-            # Add custom headers
-            response.headers["X-User-Role"] = "admin"  # example
-            return response
-
-    return await make_response("", 401)
-```
-
-### Multiple Authentication Methods
-
-You can extend the system to support API keys alongside JWT:
-
-```python
-@app.route("/auth/verify", methods=["GET"])
-async def verify() -> ResponseTypes:
-    # Check JWT token first
-    token = request.cookies.get("auth_token")
-    if token:
-        payload = verify_jwt_token(token)
-        if payload:
-            return create_auth_response(payload, "jwt")
-
-    # Check API key header
-    api_key = request.headers.get("X-API-Key")
-    if api_key:
-        user = await verify_api_key(api_key)
-        if user:
-            return create_auth_response(user, "api_key")
-
-    return await make_response("", 401)
+```yaml
+volumes:
+  postgres_data:  # Database persistence
+  caddy-data:     # Caddy certificates and cache persistence
+  caddy-config:   # Caddy runtime configuration persistence
 ```
 
 ## Troubleshooting
@@ -281,16 +248,6 @@ your-domain.com {
     }
     # ... rest of configuration
 }
-```
-
-### Health Checks
-
-Add health check endpoints to verify service status:
-
-```python
-@app.route("/health")
-async def health():
-    return {"status": "healthy", "timestamp": datetime.utcnow().isoformat()}
 ```
 
 ## Integration with Different Services

@@ -2,68 +2,30 @@
 
 This folder contains all files related to the Caddy JWT authentication system that secures normally unsecured services using JWT tokens from the catkin authentication service.
 
-## Folder Structure
-
-```
-caddy/
-├── README.md                    # This file - overview of the Caddy system
-├── configs/                     # Caddy configuration files
-│   ├── Caddyfile               # Development configuration (HTTP, ports 8000)
-│   └── Caddyfile.production    # Production configuration (HTTPS, security headers)
-├── docs/                       # Documentation and architecture
-│   ├── SETUP.md      # Complete setup and configuration guide
-│   └── ARCHITECTURE.md # System architecture and flow diagrams
-├── scripts/                    # Deployment and testing scripts
-│   └── test-caddy-auth.sh      # Automated test script for validation
-└── demo-apps/                  # Example protected applications
-    ├── example-app1/           # Demo web application
-    └── example-app2/           # Demo admin panel
-```
-
-## Quick Start
-
-### Development Environment (Current Setup)
-
-1. **Start the complete system:**
-   ```bash
-   # From project root (/home/rohan/agritheory/catkin/)
-   cd caddy/configs
-   caddy run --config Caddyfile
-   ```
-
-2. **Access the system:**
-   - **Main gateway**: http://localhost:8000
-   - **Auth service**: http://localhost:8000/auth/login
-   - **Protected app 1**: http://localhost:8000/app1/ (proxies to :8080)
-   - **Protected app 2**: http://localhost:8000/app2/ (proxies to :9000)
-   - **Health check**: http://localhost:8000/health
-
-### Production Deployment
-
-1. **Deploy with Docker Compose:**
-   ```bash
-   docker compose up -d
-   ```
-
-2. **Production endpoints:**
-   - Services only accessible through Caddy gateway (ports 80/443)
-   - Internal services: auth:5000, app1:80, app2:80
-
-### Testing
-
-```bash
-cd caddy/scripts
-./test-caddy-auth.sh
-```
-
-**Note**: Commands should be run from the project root directory (`/home/rohan/agritheory/catkin/`) using the relative paths shown above.
-
 ## Key Features
 
 - **Single Sign-On**: One login protects multiple services
 - **JWT Authentication**: Secure token-based authentication with HTTP-only cookies
 - **Zero Configuration**: Protect existing applications without code changes
 - **Development & Production Ready**: Separate configurations for different environments
+
+## Folder Structure
+
+```
+caddy/
+├── README.md                   # This file - overview of the Caddy system
+├── configs/                    # Caddy configuration files
+│   ├── Caddyfile               # Development configuration (HTTP, ports 8000)
+│   └── Caddyfile.production    # Production configuration (HTTPS, security headers)
+├── docs/                       # Documentation and architecture
+│   ├── ARCHITECTURE.md         # System architecture and flow diagrams
+│   ├── QUICKSTART.md          # Quick start guide for Caddy setup
+│   ├── SETUP.md                # Complete setup and configuration guide
+│   └── TESTING.md                 # Guide to testing the JWT authentication system
+└── demo-apps/                  # Example protected applications
+    ├── example-app1/           # Demo web application
+    └── example-app2/           # Demo admin panel
+```
 
 ## Port Configuration Reference
 
@@ -72,9 +34,8 @@ cd caddy/scripts
 |---------|------|--------|---------|
 | Caddy Gateway | 8000 | External | Main entry point |
 | Auth Service | 5000 | External (direct) | catkin authentication |
-| Protected App 1 | 8080 | External (direct) | Demo application |
-| Protected App 2 | 9000 | External (direct) | Admin panel |
 | Database | 5434 | External | PostgreSQL |
+| Protected Apps | Internal | Via Caddy | Demo applications |
 
 ### Production Environment (Docker)
 | Service | Port | Access | Purpose |
@@ -94,21 +55,14 @@ cd caddy/scripts
 - **Development**: Uses HTTP on ports 8000 for easy local testing
 - **Production**: HTTPS with Let's Encrypt certificates and security headers
 - **Authentication**: Forward auth to catkin service on port 5000
-- **Protected Services**: Any service can be protected by adding forward_auth directive
+- **Protected Services**: Any service can be protected by adding `forward_auth` directive
 
 ## Documentation
 
-See `docs/SETUP.md` for complete setup instructions and `docs/ARCHITECTURE.md` for system architecture diagrams.
-
-## Testing
-
-The `scripts/test-caddy-auth.sh` script provides comprehensive testing of:
-- Unauthenticated access blocking
-- Login flow
-- JWT token validation
-- Protected resource access
-- Security headers
-- Health checks
+- **[`ARCHITECTURE`](./docs/ARCHITECTURE.md)**: System architecture and diagrams
+- **[`QUICKSTART`](./docs/QUICKSTART.md)**: Quick-start guide for the Caddy setup
+- **[`SETUP`](./docs/SETUP.md)**: Detailed guide for the Caddy setup
+- **[`TESTING`](./docs/TESTING.md)**: Guide to testing the JWT authentication system after setup
 
 ## Integration
 
@@ -126,3 +80,31 @@ handle /your-service/* {
 ```
 
 The service will receive authenticated requests with user context in headers.
+
+## Next Steps
+
+1. **Customize Services**: Replace example apps with your actual services
+2. **Add HTTPS**: Configure SSL certificates for production
+3. **Role-Based Access**: Extend auth verification for role checks
+4. **Monitoring**: Add health checks and monitoring
+5. **Scaling**: Configure load balancing for multiple instances
+
+## Production Checklist
+
+- [ ] Use HTTPS with valid certificates
+- [ ] Set strong JWT_SECRET and FERNET_KEY
+- [ ] Configure security headers
+- [ ] Set up proper logging and monitoring
+- [ ] Test failover scenarios
+- [ ] Configure backup authentication methods
+- [ ] Set appropriate cookie security flags
+- [ ] Implement rate limiting
+- [ ] Configure CORS policies for APIs
+- [ ] Set up log rotation
+
+## Support
+
+For issues or questions:
+1. Check the detailed documentation in [`SETUP.md`](./docs/SETUP.md)
+2. Review Caddy documentation: https://caddyserver.com/docs/
+3. Check catkin auth service logs

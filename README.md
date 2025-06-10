@@ -19,6 +19,7 @@ A lightweight authentication server built with Quart that provides both local an
 - **Authentication**: JWT tokens with HTTP-only cookies
 - **Encryption**: Fernet symmetric encryption for sensitive data
 - **Deployment**: Docker with docker-compose
+- **Reverse Proxy**: Caddy with forward authentication
 
 ## Quick Start
 
@@ -59,28 +60,12 @@ A lightweight authentication server built with Quart that provides both local an
 
 4. **Access the application**:
    - Auth server: http://localhost:5000
-   - Login page: http://localhost:5000/auth/login
-
-### Manual Installation
-
-1. **Install dependencies**:
-   ```bash
-   pip install poetry
-   poetry install
-   ```
-
-2. **Setup database**:
-   ```bash
-   # Start PostgreSQL and create database 'catkin_auth'
-   poetry run python -c "from catkin.src.database import initialize_db; import asyncio; asyncio.run(initialize_db())"
-   ```
-
-3. **Run the server**:
-   ```bash
-   poetry run serve  # Development with reload
-   # or
-   poetry run start  # Production
-   ```
+   - Login page: http://localhost:8000/auth/login
+   - Protected applications through Caddy:
+     - Protected App 1: http://localhost:8000/app1/
+     - Protected App 2: http://localhost:8000/app2/
+     - Admin: http://localhost:8000/admin/
+   - Assets: http://localhost:8000/static/
 
 ## Configuration
 
@@ -117,52 +102,6 @@ OAuth providers are automatically configured if their client credentials are pro
 - `X-User-ID` - User's database ID
 - `X-Auth-Method` - Authentication method used
 
-## Usage with Caddy
-
-Configure Caddy to use catkin for forward authentication:
-
-```caddyfile
-your-app.com {
-    forward_auth localhost:5000 {
-        uri /auth/verify
-        copy_headers X-User-Email X-User-ID
-    }
-
-    reverse_proxy localhost:8080  # Your protected application
-}
-```
-
-## Development
-
-### Project Structure
-```
-catkin/
-├── src/
-│   ├── app.py              # Main application
-│   ├── database.py         # Database operations
-│   └── oauth_provider.py   # OAuth provider management
-├── templates/
-│   └── login.html          # Login page template
-├── static/                 # Static assets
-├── docker-compose.yml      # Docker composition
-├── Dockerfile             # Container definition
-└── pyproject.toml         # Python project config
-```
-
-### Available Commands
-```bash
-poetry run serve    # Development server with reload
-poetry run start    # Production server
-```
-
-## Security Notes
-
-- Always use HTTPS in production
-- Generate secure `FERNET_KEY` and `JWT_SECRET` values
-- Regularly rotate encryption keys
-- Set secure cookie flags in production
-- Use strong passwords for the admin account
-
 ## Caddy Integration
 
 This project includes a Caddy JWT-authentication system that demonstrates how to secure normally unsecured services using the catkin authentication service. The integration provides:
@@ -184,19 +123,28 @@ open http://localhost:8000/app2/      # Protected application 2
 open http://localhost:8000/health     # Health check (no auth)
 ```
 
-### Caddy System Structure
+### Production Setup
 
-```
-caddy/                               ✅ FULLY ORGANIZED
-├── configs/                        # Production-ready configurations
-├── docs/                          # Complete documentation + architecture diagrams
-├── scripts/                       # Docker compose and comprehensive tests
-├── demo-apps/                     # Working example applications
-└── IMPLEMENTATION_COMPLETE.md     # Full completion summary
+Configure Caddy to use catkin for forward authentication:
+
+```caddyfile
+your-app.com {
+    forward_auth localhost:5000 {
+        uri /auth/verify
+        copy_headers X-User-Email X-User-ID
+    }
+
+    reverse_proxy localhost:8080  # Your protected application
+}
 ```
 
-**📚 Complete Documentation**: [`caddy/docs/SETUP.md`](./caddy/docs/SETUP.md)
-**🏗️ Architecture Diagrams**: [`caddy/docs/ARCHITECTURE.md`](./caddy/docs/ARCHITECTURE.md)
+## Security Notes
+
+- Always use HTTPS in production
+- Generate secure `FERNET_KEY` and `JWT_SECRET` values
+- Regularly rotate encryption keys
+- Set secure cookie flags in production
+- Use strong passwords for the admin account
 
 ## License
 

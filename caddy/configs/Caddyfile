@@ -81,11 +81,6 @@
 		}
 	}
 
-	# Public content (no authentication required)
-	handle /public/* {
-		reverse_proxy app1:80
-	}
-
 	# Root path - redirect to login page
 	handle_path / {
 		redir /auth/login 302
