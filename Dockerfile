@@ -1,5 +1,10 @@
 # Multi-stage build for Python application + Caddy
 
+# Add image metadata
+LABEL org.opencontainers.image.source=https://github.com/agritheory/catkin
+LABEL org.opencontainers.image.description="Catkin - Simple Auth Server with Caddy reverse proxy"
+LABEL org.opencontainers.image.licenses=MIT
+
 # --------------------------------------------------------------------------------
 
 # 1. Build stage for Python dependencies
@@ -42,6 +47,10 @@ RUN python -c "import site; open('/usr/local/lib/python3.12/site-packages/SITE_P
 
 # 3. Final stage using Caddy as the base
 FROM caddy:2-alpine AS proxy
+
+# Add final image labels
+LABEL org.opencontainers.image.title="Catkin Auth Server"
+LABEL org.opencontainers.image.vendor="AgriTheory"
 
 # Set environment variables for configuration
 ENV CATKIN_PORT=5000 \
