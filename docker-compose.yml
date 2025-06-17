@@ -28,6 +28,8 @@ services:
 
   # Catkin authentication service
   auth:
+    # Use GHCR image with fallback to local build
+    image: ghcr.io/agritheory/catkin:latest
     build: .
     ports:
       - "5000:5000"
