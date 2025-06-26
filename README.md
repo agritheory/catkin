@@ -23,7 +23,7 @@ A lightweight authentication server built with Quart that provides both local an
 
 ## Quick Start
 
-### Using Docker Compose
+### Using Docker Compose with GHCR Images (Recommended)
 
 1. **Clone and setup environment**:
    ```bash
@@ -55,6 +55,8 @@ A lightweight authentication server built with Quart that provides both local an
 
 3. **Start the services**:
    ```bash
+   # For development with local builds Using pre-built images from
+   # GitHub Container Registry
    docker compose up -d
    ```
 
@@ -66,6 +68,16 @@ A lightweight authentication server built with Quart that provides both local an
      - Protected App 2: http://localhost:8000/app2/
      - Admin: http://localhost:8000/admin/
    - Assets: http://localhost:8000/static/
+
+### Using Docker Run with GHCR
+
+```bash
+# Pull and run the latest image from GHCR
+docker run -p 80:80 -p 443:443 \
+  -e DATABASE_URL="postgresql://user:pass@host:5432/catkin_auth" \
+  -e JWT_SECRET="your-secure-secret" \
+  ghcr.io/agritheory/catkin:latest
+```
 
 ## Configuration
 
@@ -145,6 +157,34 @@ your-app.com {
 - Regularly rotate encryption keys
 - Set secure cookie flags in production
 - Use strong passwords for the admin account
+
+## Docker Images
+
+### GitHub Container Registry
+
+Pre-built images are available at:
+- `ghcr.io/agritheory/catkin:latest` - Latest stable version
+- `ghcr.io/agritheory/catkin:main` - Latest development version
+- `ghcr.io/agritheory/catkin:v1.0.0` - Tagged releases
+
+### Authentication
+
+To pull private images from GHCR:
+
+```bash
+# Login to GHCR
+echo $GITHUB_TOKEN | docker login ghcr.io -u USERNAME --password-stdin
+
+# Or using GitHub CLI
+gh auth token | docker login ghcr.io -u USERNAME --password-stdin
+```
+
+### Available Tags
+
+- `latest` - Latest stable release
+- `main` - Latest commit on main branch
+- `v*.*.*` - Semantic version tags
+- `pr-*` - Pull request builds
 
 ## License
 

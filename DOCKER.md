@@ -10,15 +10,44 @@ This Docker image combines a Python-based authentication service (Catkin) with C
 - **Performance Optimized**: Multi-stage build with minimal dependencies
 - **Production Ready**: Includes proper signal handling and health checks
 
+## Pre-built Images
+
+Images are automatically built and published to GitHub Container Registry:
+
+```bash
+# Latest stable version
+docker pull ghcr.io/agritheory/catkin:latest
+
+# Development version
+docker pull ghcr.io/agritheory/catkin:main
+
+# Specific version
+docker pull ghcr.io/agritheory/catkin:v1.0.0
+```
+
 ## Quick Start
+
+### Using GHCR Image
 
 ```bash
 docker run -p 80:80 -p 443:443 \
   -e DATABASE_URL="postgresql://user:pass@your-db-host:5432/catkin_auth" \
   -e JWT_SECRET="your-secure-jwt-secret" \
   -v ./your-caddyfile:/etc/caddy/Caddyfile \
-  -v caddy_data:/data \
-  catkin:latest
+  -v catkin_data:/data \
+  ghcr.io/agritheory/catkin:latest
+```
+
+### Private Registry Access
+
+For private repositories, authenticate with GHCR:
+
+```bash
+# Using GitHub token
+echo $GITHUB_TOKEN | docker login ghcr.io -u your-username --password-stdin
+
+# Using GitHub CLI
+gh auth token | docker login ghcr.io -u your-username --password-stdin
 ```
 
 ## Environment Variables
@@ -134,6 +163,12 @@ docker run -e CATKIN_UVICORN_OPTS="--workers 4 --loop uvloop" ...
 
 ## Building the Image
 
+### Local Build
 ```bash
 docker build -t catkin:latest .
+```
+
+### Multi-platform Build
+```bash
+docker buildx build --platform linux/amd64,linux/arm64 -t catkin:latest .
 ```
