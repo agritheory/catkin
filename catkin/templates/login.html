@@ -14,11 +14,16 @@
 			<div class="logo-container">
 				<img src="{{ url_for('static', filename='atlogo_rust.svg') }}" alt="AgriTheory" class="logo">
 			</div>
-			{% if error %}
-			<div class="error">
-				{{ error }}
-			</div>
-			{% endif %}
+		{% if message %}
+		<div class="message">
+			{{ message }}
+		</div>
+		{% endif %}
+		{% if error %}
+		<div class="error">
+			{{ error }}
+		</div>
+		{% endif %}
 
 			{% if oauth_providers %}
 			<div class="oauth-section">
