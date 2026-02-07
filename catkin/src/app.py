@@ -112,6 +112,7 @@ async def login_page() -> str:
 	"""Display login form with OAuth providers"""
 	redirect_url = request.args.get("redirect", DEFAULT_REDIRECT)
 	error = request.args.get("error")
+	message = request.args.get("message")
 
 	try:
 		oauth_providers = await get_enabled_providers(db)
@@ -120,7 +121,11 @@ async def login_page() -> str:
 		oauth_providers = []
 
 	return await render_template(
-		"login.html", redirect_url=redirect_url, error=error, oauth_providers=oauth_providers
+		"login.html",
+		redirect_url=redirect_url,
+		error=error,
+		message=message,
+		oauth_providers=oauth_providers,
 	)
 
 
