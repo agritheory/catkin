@@ -2,7 +2,7 @@
 OAuth Provider management following Frappe's Social Login Key pattern
 """
 import logging
-from urllib.parse import urlencode
+from urllib.parse import quote, urlencode
 
 import httpx
 from cryptography.fernet import Fernet
@@ -256,7 +256,7 @@ def build_authorize_url(
 	if state:
 		params["state"] = state
 
-	return f"{auth_url}?{urlencode(params)}"
+	return f"{auth_url}?{urlencode(params, quote_via=quote)}"
 
 
 async def exchange_code_for_token(
