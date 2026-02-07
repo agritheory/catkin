@@ -43,6 +43,9 @@ except Exception:
 JWT_SECRET = env.str("JWT_SECRET", "your-secret-key-change-in-production")
 FERNET_KEY = env.str("FERNET_KEY", None)
 DEFAULT_REDIRECT = env.str("DEFAULT_REDIRECT", "/")
+OAUTH_CALLBACK_HOST = env.str("OAUTH_CALLBACK_HOST", "")
+COOKIE_DOMAIN = env.str("COOKIE_DOMAIN", None)
+SECURE_COOKIES = env.bool("SECURE_COOKIES", False)
 
 db = Database(DATABASE_URL)
 fernet = None
@@ -89,6 +92,33 @@ def verify_jwt_token(token: str) -> dict | None:
 		return jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
 	except jwt.InvalidTokenError:
 		return None
+
+
+def _set_auth_cookie(response: Any, token: str, max_age: int = 86400) -> None:
+	"""Set the auth_token cookie with consistent options."""
+	response.set_cookie(
+		"auth_token",
+		token,
+		max_age=max_age,
+		httponly=True,
+		secure=SECURE_COOKIES,
+		samesite="Lax",
+		domain=COOKIE_DOMAIN,
+	)
+
+
+def _clear_auth_cookie(response: Any) -> None:
+	"""Clear the auth_token cookie with consistent options."""
+	response.set_cookie(
+		"auth_token",
+		"",
+		expires=0,
+		max_age=0,
+		httponly=True,
+		secure=SECURE_COOKIES,
+		samesite="Lax",
+		domain=COOKIE_DOMAIN,
+	)
 
 
 @app.before_serving
@@ -144,14 +174,7 @@ async def handle_login() -> ResponseTypes:
 			token = create_jwt_token(user["id"], user["username"])
 
 			response = await make_response(redirect(redirect_url))
-			response.set_cookie(
-				"auth_token",
-				token,
-				max_age=86400,  # 24 hours
-				httponly=True,
-				secure=False,  # Set to True in production with HTTPS
-				samesite="Lax",
-			)
+			_set_auth_cookie(response, token)
 			return response
 		else:
 			return redirect(f"/auth/login?error=Invalid credentials&redirect={redirect_url}")
@@ -197,20 +220,29 @@ async def oauth_login(provider_name: str) -> ResponseTypes:
 			_logger.error(f"Provider '{provider_name}' not found in database")
 			return redirect(url_for("login_page", error=f"Provider {provider_name} not found"))
 
-		redirect_uri = request.url_root.rstrip("/") + f"/auth/oauth/{provider_name}/callback"
+		# Use fixed callback host if configured, otherwise derive from request
+		if OAUTH_CALLBACK_HOST:
+			callback_base = f"{request.scheme}://{OAUTH_CALLBACK_HOST}"
+		else:
+			callback_base = request.url_root.rstrip("/")
+
+		redirect_uri = callback_base + f"/auth/oauth/{provider_name}/callback"
 		state = secrets.token_urlsafe(32)
 		original_redirect = request.args.get("redirect", DEFAULT_REDIRECT)
 
 		state_data = {
 			"state": state,
 			"redirect": original_redirect,
+			"origin": request.url_root.rstrip("/"),
 			"exp": datetime.utcnow() + timedelta(minutes=10),
 		}
 		state_token = jwt.encode(state_data, JWT_SECRET, algorithm="HS256")
 		auth_url = build_authorize_url(provider, redirect_uri, state)
 
 		response = await make_response(redirect(auth_url))
-		response.set_cookie("oauth_state", state_token, max_age=600, httponly=True)
+		response.set_cookie(
+			"oauth_state", state_token, max_age=600, httponly=True, domain=COOKIE_DOMAIN
+		)
 		return response
 
 	except Exception as e:
@@ -248,7 +280,13 @@ async def oauth_callback(provider_name: str) -> ResponseTypes:
 			_logger.error("Fernet key is not configured, cannot decrypt state")
 			return redirect(url_for("login_page", error="OAuth configuration error"))
 
-		redirect_uri = request.url_root.rstrip("/") + f"/auth/oauth/{provider_name}/callback"
+		# Use fixed callback host for token exchange (must match authorize request)
+		if OAUTH_CALLBACK_HOST:
+			callback_base = f"{request.scheme}://{OAUTH_CALLBACK_HOST}"
+		else:
+			callback_base = request.url_root.rstrip("/")
+
+		redirect_uri = callback_base + f"/auth/oauth/{provider_name}/callback"
 		token_data = await exchange_code_for_token(provider, fernet, code, redirect_uri)
 
 		if not token_data or "access_token" not in token_data:
@@ -268,16 +306,12 @@ async def oauth_callback(provider_name: str) -> ResponseTypes:
 
 		token = create_jwt_token(user["id"], user["username"])
 
-		response = await make_response(redirect(original_redirect))
-		response.set_cookie(
-			"auth_token",
-			token,
-			max_age=86400,  # 24 hours
-			httponly=True,
-			secure=False,  # Set to True in production with HTTPS
-			samesite="Lax",
-		)
-		response.set_cookie("oauth_state", "", expires=0)
+		# Redirect to the originating host + original path
+		origin = state_data.get("origin", "")
+		final_redirect = f"{origin}{original_redirect}" if origin else original_redirect
+		response = await make_response(redirect(final_redirect))
+		_set_auth_cookie(response, token)
+		response.set_cookie("oauth_state", "", expires=0, domain=COOKIE_DOMAIN)
 		return response
 
 	except Exception as e:
@@ -320,15 +354,7 @@ async def logout() -> ResponseTypes:
 	redirect_url = request.args.get("redirect", DEFAULT_REDIRECT)
 
 	response = await make_response(redirect(redirect_url))
-	# Clear the auth cookie by setting it to expire immediately
-	response.set_cookie(
-		"auth_token",
-		"",
-		expires=0,
-		httponly=True,
-		secure=False,  # Set to True in production with HTTPS
-		samesite="Lax",
-	)
+	_clear_auth_cookie(response)
 	return response
 
 
